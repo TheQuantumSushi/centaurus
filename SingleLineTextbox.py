@@ -21,7 +21,7 @@ class SingleLineTextbox(QWidget):
     # Define PyQT6 signals :
     empty = pyqtSignal() # if the textbox is empty
 
-    def __init__(self, parent = None, placeholder : str = "Enter file path...", width : int = 500, empty_error_function : 'function' = default_empty_error_function):
+    def __init__(self, parent = None, placeholder : str = "Enter input...", width : int = 500, empty_error_function : 'function' = default_empty_error_function, is_mandatory = False):
         """
         Initialize the attributes, connect the signals and define the widget
         """
@@ -29,13 +29,15 @@ class SingleLineTextbox(QWidget):
 
         # Initialize attributes :
         self.empty_error_function = empty_error_function
+        self.is_mandatory = is_mandatory
+        self.placeholder = placeholder
 
         # Connect the error function to the signal :
         self.empty.connect(self.empty_error_function)
         
         # Create a QLineEdit widget
         self.line_edit = QLineEdit(self)
-        self.line_edit.setPlaceholderText(placeholder)
+        self.line_edit.setPlaceholderText(self.placeholder)
         
         # Set fixed size for the widget
         self.setFixedSize(width, 60)
@@ -79,7 +81,7 @@ class SingleLineTextbox(QWidget):
         Get the text that was inputed and handle the case where nothing was inputed
         """
         content = self.line_edit.text()
-        if not content:
+        if not content and self.is_mandatory:
             self.empty.emit()
         return content
 
@@ -91,7 +93,7 @@ if __name__ == "__main__":
     layout = QVBoxLayout()
     window.setLayout(layout)
     # Create and add the textbox :
-    textbox = SingleLineTextbox()
+    textbox = SingleLineTextbox(is_mandatory = True)
     layout.addWidget(textbox)
     # Create and add a button for checking :
     check_button = QPushButton("check if empty")
