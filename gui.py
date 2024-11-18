@@ -1,3 +1,5 @@
+# gui.py
+
 # Library imports :
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame, QSizePolicy)
 from PyQt6.QtCore import Qt
@@ -7,10 +9,12 @@ import os
 import inspect
 import json
 import sass
+
 # Module imports :
 from LogWriter import LogWriter
 from FileSelectorWidget import FileSelectorWidget
 from SingleLineTextbox import SingleLineTextbox
+from FileManager import FileManager
 
 # Initialize LogWriter :
 logger = LogWriter("log.txt")
@@ -89,7 +93,7 @@ class MainWindow(QWidget):
         # Right part of layout_2
         self.right_part = QVBoxLayout()
 
-        self.path_textbox = SingleLineTextbox()
+        self.path_textbox = SingleLineTextbox(is_mandatory = True)
         self.path_textbox.setObjectName("path_textbox")
         self.path_textbox.setFixedHeight(110)
         
@@ -113,10 +117,10 @@ class MainWindow(QWidget):
         # 3. Layout 3 - Four lines of text arranged vertically
         self.layout_3 = QVBoxLayout()
         
-        self.name_textbox = SingleLineTextbox()
+        self.name_textbox = SingleLineTextbox(placeholder = "Enter content name", is_mandatory = True)
         self.name_textbox.setObjectName("name_textbox")
 
-        self.link_textbox = SingleLineTextbox()
+        self.link_textbox = SingleLineTextbox(placeholder = "Enter TMDB or IMDB link...", is_mandatory = True)
         self.link_textbox.setObjectName("link_textbox")
 
         self.layout_3.addWidget(self.name_textbox)
@@ -157,7 +161,28 @@ class MainWindow(QWidget):
         """
         Start the downloading/file managing process
         """
-        # Check if the file exists, if a file is provided
+        # Check if file/name/link are provided :
+        path = self.file_browser.getSelectedFilePath() if self.method == "file" else self.path_textbox.get_content()
+        name = self.name_textbox.get_content()
+        link = self.link_textbox.get_content()
+        if path and name and link:
+            # Working directory :
+            base_path = "/home/thomas/Documents"
+            # Initialize FileManager :
+            filemanager = FileManager(self.logger, "f0ceb830389ee3d912871135d4489911")
+            # Extract metadata :
+            id_type, id_no = filemanager.extract_id(link)
+            if not movie_id:
+                print("Error: Could not extract ID from the provided link")
+            else:
+                data = filemanager.fetch_data(id_type, id_no)
+                if data:
+                    # Generate NFO content and create folder structure :
+                    nfo_content = filemanager.generate_nfo(data)
+                    folder_name = movie_data.get("title", "Unknown").replace(" ", "_")
+                    filemanager.create_data(base_path, folder_name, path, nfo_content)
+                else:
+                    print("Error: Could not fetch movie data from TMDb")
 
     def compile_stylesheet(self, json_file):
         """
