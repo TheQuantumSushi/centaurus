@@ -1,10 +1,37 @@
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QColor, QPainter
-from PyQt6.QtWidgets import QWidget, QLineEdit, QVBoxLayout, QScrollBar
+# SingleLineTextbox.py
 
+# Library imports :
+from PyQt6.QtCore import Qt, QSize, pyqtSignal
+from PyQt6.QtGui import QColor, QPainter
+from PyQt6.QtWidgets import QWidget, QApplication, QMessageBox, QPushButton, QLineEdit, QVBoxLayout, QScrollBar
+import sys
+
+def default_empty_error_function():
+    """
+    Default function to handle the fact that the textbox is empty
+    """
+    QMessageBox.warning(None, "Please input text", "Input is empty")
+
+# Define the Widget class :
 class SingleLineTextbox(QWidget):
-    def __init__(self, parent=None, placeholder: str = "Enter file path...", width: int = 500):
+    """
+    A PyQT6 widget that acts as an input textbox which only accepts a single line,
+    will display a scrollbar when needed, as well as a placeholder text when empty
+    """
+    # Define PyQT6 signals :
+    empty = pyqtSignal() # if the textbox is empty
+
+    def __init__(self, parent = None, placeholder : str = "Enter file path...", width : int = 500, empty_error_function : 'function' = default_empty_error_function):
+        """
+        Initialize the attributes, connect the signals and define the widget
+        """
         super().__init__(parent)
+
+        # Initialize attributes :
+        self.empty_error_function = empty_error_function
+
+        # Connect the error function to the signal :
+        self.empty.connect(self.empty_error_function)
         
         # Create a QLineEdit widget
         self.line_edit = QLineEdit(self)
@@ -26,20 +53,51 @@ class SingleLineTextbox(QWidget):
         self.line_edit.textChanged.connect(self.update_scrollbar)
 
     def update_scrollbar(self):
-        # Get the content's width using horizontalAdvance()
+        """
+        Hide/show the scrollbar depending on whether it is needed (text longer than
+        size) or not
+        """
+        # Get the content's width :
         text_width = self.line_edit.fontMetrics().horizontalAdvance(self.line_edit.text())
-        
-        # Compare it to the width of the widget
-        if text_width > self.width():
-            # Show the scrollbar if needed
+        # Compare it to the width of the widget :
+        if text_width > self.width(): # if the scrollbar is needed
             self.scrollbar.setVisible(True)
             self.scrollbar.setRange(0, text_width - self.width())
             self.scrollbar.setPageStep(self.width())
-        else:
-            # Hide the scrollbar if not needed
+        else: # if it is not needed
             self.scrollbar.setVisible(False)
 
     def resizeEvent(self, event):
-        # Update scrollbar visibility on resizing
+        """
+        Update scrollbar in the event of the widget being resized
+        """
         self.update_scrollbar()
         super().resizeEvent(event)
+
+    def get_content(self):
+        """
+        Get the text that was inputed and handle the case where nothing was inputed
+        """
+        content = self.line_edit.text()
+        if not content:
+            self.empty.emit()
+        return content
+
+# Example usage :
+if __name__ == "__main__":
+    # Create the window and a layout :
+    app = QApplication(sys.argv)
+    window = QWidget()
+    layout = QVBoxLayout()
+    window.setLayout(layout)
+    # Create and add the textbox :
+    textbox = SingleLineTextbox()
+    layout.addWidget(textbox)
+    # Create and add a button for checking :
+    check_button = QPushButton("check if empty")
+    check_button.clicked.connect(textbox.get_content)
+    layout.addWidget(check_button)
+    # Show the window :
+    window.show()
+    # Start the event loop :
+    app.exec()
