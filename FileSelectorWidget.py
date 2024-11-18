@@ -1,16 +1,28 @@
+# FileSelectorWidget.py
+
+# Library imports :
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QApplication, QHBoxLayout, QMainWindow, QWidget, QLabel, QFileDialog
+from PyQt6.QtWidgets import QApplication, QMessageBox, QHBoxLayout, QVBoxLayout, QPushButton, QMainWindow, QWidget, QLabel, QFileDialog
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QDrag
 from PyQt6.QtCore import QFileInfo
 import os
 import sys
 
-def handle_file_not_selected():
-    print("Error: No file selected.")
+# Define default functions to handle errors :
 
-def handle_file_not_found():
-    print("Error: Selected file no longer exists.")
+def default_handle_file_not_selected():
+    """
+    Default function to handle the fact that a file wasn't selected upon accessing path
+    """
+    QMessageBox.warning(None, "File Not Selected", "Please select a file before proceeding.")
 
+def default_handle_file_not_found():
+    """
+    Default function to handle the fact that the file accessed in the path doesn't exist
+    """
+    QMessageBox.critical(None, "File Not Found", "The selected file does not exist. Please select another file.")
+
+# Define the Widget class :
 class FileSelectorWidget(QWidget):
     """
     A file selector PyQT6 widget that supports double clicking to open a file browser,
@@ -24,18 +36,20 @@ class FileSelectorWidget(QWidget):
     fileNotSelected = pyqtSignal() # if no file is selected when accessing path
     fileNotFound = pyqtSignal() # if the selected file no longer can be found when accessing path
 
-    def __init__(self, file_not_selected_error_function : 'function', file_inexistant_error_function : 'function'):
+    def __init__(self, file_not_selected_error_function : 'function' = default_handle_file_not_selected, file_inexistant_error_function : 'function' = default_handle_file_not_found):
         """
         Initialize the attributes, connect the signals and define the widget
         """
         super().__init__()
 
-        # Connect the signals to their respective functions :
-        self.fileNotSelected.connect(file_not_selected_error_function)
-        self.fileNotFound.connect(file_inexistant_error_function)
-
         # Initialize attributes :
         self.selected_file_path = None
+        self.file_not_selected_error_function = file_not_selected_error_function
+        self.file_inexistant_error_function = file_inexistant_error_function
+
+        # Connect the error functions to the signals :
+        self.fileNotSelected.connect(self.file_not_selected_error_function)
+        self.fileNotFound.connect(self.file_inexistant_error_function)
 
         # Define the label with a placeholder text :
         self.label = QLabel("Drag and drop a file here, or double-click to select a file")
@@ -113,15 +127,18 @@ class FileSelectorWidget(QWidget):
 
 # Example usage :
 if __name__ == "__main__":
-    # Create the window :
+    # Create the window and a layout :
     app = QApplication(sys.argv)
-    window = QMainWindow()
+    window = QWidget()
+    layout = QVBoxLayout()
+    window.setLayout(layout)
     # Create and add the file browser :
     file_selector = FileSelectorWidget()
-    window.setCentralWidget(file_selector)
-    # Add a button for checking :
+    layout.addWidget(file_selector)
+    # Create and add a button for checking :
     check_button = QPushButton("check file")
-    check_button.connect(file_selector.getSelectedFilePath)
+    check_button.clicked.connect(file_selector.getSelectedFilePath)
+    layout.addWidget(check_button)
     # Show the window :
     window.show()
     # Start the event loop :
