@@ -1,0 +1,64 @@
+{
+  "paths": {
+    "vpns": [
+      "/etc/openvpn"
+    ],
+    "flags": "flags",
+    "commands": "/bin"
+  },
+  "colors": {
+    "background_color": "#2c2c2c",
+    "list_background_color": "#2c2c2c",
+    "border_color": "#FFFFFF",
+    "item_background_color": "#2c2c2c",
+    "selected_item_background_color": "#595454",
+    "main_text_color": "#FFFFFF",
+    "small_text_color": "#FFFFFF",
+    "button_text_color": "#FFFFFF",
+    "connect_button_color": "#4CAF50",
+    "disconnect_button_color": "#f44336",
+    "scroll_border_color": "#FFFFFF"
+  },
+  "hash_parameters": {
+    "memory_cost_cap": 0,
+    "time_cost_cap": 0,
+    "parallelism_cap": 0
+  },
+  "log": {
+    "entry_number": 1012,
+    "error_number": 0,
+    "types": {
+      "DEBUG": [
+        "message"
+      ],
+      "INFO": [
+        "message"
+      ],
+      "ERROR": [
+        "message",
+        "raised by"
+      ],
+      "WARNING": [
+        "message",
+        "raised by"
+      ],
+      "COMMAND": [
+        "command",
+        "requires sudo",
+        "invoker",
+        "output (STDOUT stream)",
+        "errors (STDERR Stream)"
+      ],
+      "EVENT": [
+        "event",
+        "triggered by",
+        "output"
+      ],
+      "ACTION": [
+        "action",
+        "invoker",
+        "output"
+      ]
+    }
+  }
+}
